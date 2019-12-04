@@ -4,6 +4,7 @@ load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library", "py_grpc_library")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 
 # Convention:
 # A java_proto_library that wraps a proto_library named foo_proto
@@ -23,6 +24,12 @@ java_proto_library(
 java_lite_proto_library(
     name = "person_java_proto_lite",
     deps = [":person_proto"],
+)
+
+java_grpc_library(
+    name = "person_java_grpc",
+    srcs = [":person_proto"],
+    deps = [":person_java_proto"],
 )
 
 # Convention:
@@ -47,16 +54,6 @@ py_proto_library(
     name = "person_py_proto",
     deps = [":person_proto"],
 )
-
-#py_proto_library(
-#    name = "address_py_proto",
-#    deps = [":address_proto"],
-#)
-
-#py_proto_library(
-#    name = "person_py_proto",
-#    deps = [":all_proto"],
-#)
 
 py_grpc_library(
     name = "person_py_grpc",

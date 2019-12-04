@@ -1,6 +1,21 @@
-workspace(name = "com_github_cgrushko_proto_library")
+workspace(name = "com_github_yancl_proto_library")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# overide all others protobuf 
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "f391daf5342e7359519586e0adf8b66d6649b237afd63bb04bb76bcaea2a4942",
+    strip_prefix = "protobuf-7bb8b108d16252d0ed053673d70ea6d2020ec7ff",
+    urls = [
+        #"https://mirror.bazel.build/github.com/google/protobuf/archive/7bb8b108d16252d0ed053673d70ea6d2020ec7ff.tar.gz",
+        "https://github.com/google/protobuf/archive/7bb8b108d16252d0ed053673d70ea6d2020ec7ff.tar.gz",
+    ],
+    patches = [
+        "@//:protobuf.patch",
+    ],
+    patch_args = ["-p1"],
+)
 
 # rules_cc defines rules for generating C++ code from Protocol Buffers.
 http_archive(
@@ -35,7 +50,7 @@ http_archive(
     ],
 )
 
-# rules_go defines rules for generating Go code from Protocol Buffers
+# io_bazel_rules_go defines rules for generating Go code from Protocol Buffers
 http_archive(
     name = "io_bazel_rules_go",
     urls = [
@@ -56,7 +71,19 @@ http_archive(
     ],
 )
 
-# cpp grpc related
+# the GRPC part
+# io_grpc_grpc_java defines rules for generating Java grpc code from Protocol Buffers
+http_archive(
+    name = "io_grpc_grpc_java",
+    sha256 = "90ad45e1c9e13979d4b425f680f5b71820a5ef8b529b21ed4b361740ffb0ce64",
+    strip_prefix = "grpc-java-d231db29e89c437d3e3db548da447ecb0aba2edc",
+    urls = [
+        "https://mirror.bazel.build/github.com/grpc/grpc-java/archive/d231db29e89c437d3e3db548da447ecb0aba2edc.tar.gz",
+        "https://github.com/grpc/grpc-java/archive/d231db29e89c437d3e3db548da447ecb0aba2edc.tar.gz",
+    ],
+)
+
+# com_github_grpc_grpc defines rules for generating Cpp&Python grpc codes from Protocol Buffers
 http_archive(
     name = "com_github_grpc_grpc",
     sha256 = "ae0be9dcee70a25b38dfd2a0fe22839ea9beb5a2c3f180b0c5b4174fa37f3e93",
@@ -66,8 +93,7 @@ http_archive(
     ],
 )
 
-
-# gazelle 
+# bazel_gazelle used by golang grpc
 http_archive(
     name = "bazel_gazelle",
     urls = [
@@ -86,13 +112,24 @@ rules_java_toolchains()
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
-go_register_toolchains()
+go_register_toolchains(go_version="host")
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 rules_proto_dependencies()
 rules_proto_toolchains()
 
-# go grpc deps
+# cpp&python grpc deps
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+grpc_extra_deps()
+
+# java grpc
+load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
+grpc_java_repositories()
+
+# go grpc
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 gazelle_dependencies()
 
@@ -117,22 +154,3 @@ go_repository(
     sum = "h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=",
     version = "v0.3.0",
 )
-
-# cpp grpc deps
-load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
-grpc_deps()
-
-load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
-grpc_extra_deps()
-
-#load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-#protobuf_deps()
-
-#load("@io_bazel_rules_python//python:pip.bzl", "pip_import", "pip_repositories")
-#pip_import(
-#    name = "grpc_python_dependencies",
-#    requirements = "@com_github_grpc_grpc//:requirements.bazel.txt",
-#)
-#load("@grpc_python_dependencies//:requirements.bzl", "pip_install")
-#pip_repositories()
-#pip_install()
