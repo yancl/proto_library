@@ -8,6 +8,7 @@ import "src/address.proto";
 // Well known protos should be imported with full path relative to
 // @com_google_protobuf.
 import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
 
 message Person {
   string name = 1;
@@ -15,4 +16,20 @@ message Person {
   string email = 3;
   Address address = 4;
   google.protobuf.Any favorite_thing = 5;
+}
+
+message GetPersonRequest {
+  string name = 1;
+}
+
+message GetPersonResponse {
+  Person person = 1;
+}
+
+service Test {
+  rpc GetPerson(GetPersonRequest) returns (GetPersonResponse){
+    option (google.api.http) = {
+      get: "/person/{name}"
+    };
+  };
 }
